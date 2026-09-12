@@ -1,0 +1,70 @@
+click:
+  name: Clickpad click
+  description: Siri-Remote-style clickpad click (what tvOS apps expect, e.g. play/pause on Now Playing).
+  fields:
+    entity_id:
+      name: Apple TV
+      description: Any apple_tv entity of the box (optional with a single Apple TV).
+      selector:
+        entity:
+          integration: apple_tv
+    action:
+      name: Action
+      description: single or double tap
+      default: single
+      selector:
+        select:
+          options: ["single", "double"]
+hold:
+  name: Clickpad hold
+  description: Press the clickpad, wait, release — with YOUR timing (tvOS context menu needs ~500 ms; pyatv's built-in 1 s hold trips key-repeat).
+  fields:
+    entity_id:
+      name: Apple TV
+      selector:
+        entity:
+          integration: apple_tv
+    hold_ms:
+      name: Hold (ms)
+      default: 600
+      selector:
+        number:
+          min: 50
+          max: 5000
+          step: 50
+          unit_of_measurement: ms
+    x:
+      name: X (0-1000)
+      default: 500
+      selector:
+        number:
+          min: 0
+          max: 1000
+    y:
+      name: Y (0-1000)
+      default: 500
+      selector:
+        number:
+          min: 0
+          max: 1000
+swipe:
+  name: Swipe
+  description: Swipe gesture between two touchpad points.
+  fields:
+    entity_id:
+      name: Apple TV
+      selector:
+        entity:
+          integration: apple_tv
+    start_x: { name: Start X, required: true, selector: { number: { min: 0, max: 1000 } } }
+    start_y: { name: Start Y, required: true, selector: { number: { min: 0, max: 1000 } } }
+    end_x: { name: End X, required: true, selector: { number: { min: 0, max: 1000 } } }
+    end_y: { name: End Y, required: true, selector: { number: { min: 0, max: 1000 } } }
+    duration_ms:
+      name: Duration (ms)
+      default: 300
+      selector:
+        number:
+          min: 50
+          max: 5000
+          unit_of_measurement: ms

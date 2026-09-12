@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Apple TV Touch",
+        "description": "Adds clickpad click / hold / swipe services on top of the Apple TV integration. No settings."
+      }
+    },
+    "abort": {
+      "already_configured": "Apple TV Touch is already set up"
+    }
+  }
+}

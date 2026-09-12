@@ -1,0 +1,13 @@
+{
+  "domain": "atv_touch",
+  "name": "Apple TV Touch",
+  "codeowners": ["@vipzzzzzz"],
+  "config_flow": true,
+  "dependencies": ["apple_tv"],
+  "documentation": "https://github.com/vipzzzzzz/ha-atv-touch",
+  "integration_type": "service",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/vipzzzzzz/ha-atv-touch/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}
