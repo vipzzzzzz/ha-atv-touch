@@ -32,7 +32,8 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv, entity_registry as er
 
-from pyatv.const import InputAction, TouchAction
+from pyatv.const import InputAction, Protocol, TouchAction
+from pyatv.protocols.companion.api import HidCommand
 
 DOMAIN = "atv_touch"
 APPLE_TV_DOMAIN = "apple_tv"
@@ -54,6 +55,23 @@ HOLD_SCHEMA = vol.Schema(
         vol.Optional("hold_ms", default=600): vol.All(vol.Coerce(int), vol.Range(min=50, max=5000)),
         vol.Optional("x", default=CENTER): vol.All(vol.Coerce(int), vol.Range(min=0, max=1000)),
         vol.Optional("y", default=CENTER): vol.All(vol.Coerce(int), vol.Range(min=0, max=1000)),
+    }
+)
+BUTTONS = {
+    "select": HidCommand.Select,
+    "menu": HidCommand.Menu,
+    "home": HidCommand.Home,
+    "up": HidCommand.Up,
+    "down": HidCommand.Down,
+    "left": HidCommand.Left,
+    "right": HidCommand.Right,
+    "play_pause": HidCommand.PlayPause,
+}
+BUTTON_HOLD_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Optional("button", default="select"): vol.In(sorted(BUTTONS)),
+        vol.Optional("hold_ms", default=700): vol.All(vol.Coerce(int), vol.Range(min=50, max=5000)),
     }
 )
 SWIPE_SCHEMA = vol.Schema(
@@ -125,6 +143,27 @@ async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
             d["start_x"], d["start_y"], d["end_x"], d["end_y"], d["duration_ms"]
         )
 
+    async def _button_hold(call: ServiceCall) -> None:
+        # A held HID *button* (not a touch): this is what tvOS apps read as a
+        # long-press for item context menus (YouTube, Plex, ...). pyatv's own
+        # hold is a fixed 1 s, long enough to trip tvOS key-repeat; here the
+        # press/release timing is the caller's.
+        atv = _resolve_atv(hass, call.data.get(ATTR_ENTITY_ID))
+        rc = atv.remote_control.get(Protocol.Companion)
+        api = getattr(rc, "api", None)
+        if api is None:
+            raise HomeAssistantError(
+                "Apple TV is not connected over the Companion protocol"
+            )
+        cmd, ms = BUTTONS[call.data["button"]], call.data["hold_ms"]
+        _LOGGER.debug("button hold %s for %d ms", cmd, ms)
+        await api.hid_command(True, cmd)
+        try:
+            await asyncio.sleep(ms / 1000)
+        finally:
+            await api.hid_command(False, cmd)
+
+    hass.services.async_register(DOMAIN, "button_hold", _button_hold, schema=BUTTON_HOLD_SCHEMA)
     hass.services.async_register(DOMAIN, "click", _click, schema=CLICK_SCHEMA)
     hass.services.async_register(DOMAIN, "hold", _hold, schema=HOLD_SCHEMA)
     hass.services.async_register(DOMAIN, "swipe", _swipe, schema=SWIPE_SCHEMA)

@@ -17,6 +17,7 @@ previous track, click = play/pause).
 | `atv_touch.click` | Clickpad click (`action: single` or `double`) |
 | `atv_touch.hold` | Press → wait `hold_ms` (default 600) → release, at `x`/`y` (0–1000, default centre) |
 | `atv_touch.swipe` | Swipe from `start_x/y` to `end_x/y` over `duration_ms` |
+| `atv_touch.button_hold` | Hold a HID **button** (`select`, `menu`, `home`, d-pad, `play_pause`) for exactly `hold_ms` (default 700) — the long-press tvOS apps use for item context menus, with a hold short enough to avoid key-repeat |
 
 All take an optional `entity_id` of any `apple_tv` entity; with one Apple TV
 it is picked automatically.

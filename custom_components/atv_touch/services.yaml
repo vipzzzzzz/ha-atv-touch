@@ -47,6 +47,30 @@ hold:
         number:
           min: 0
           max: 1000
+button_hold:
+  name: Button hold
+  description: Hold a HID BUTTON (select/menu/…) for exactly hold_ms — the tvOS long-press that opens item context menus, without pyatv's fixed 1 s hold (which trips key-repeat).
+  fields:
+    entity_id:
+      name: Apple TV
+      selector:
+        entity:
+          integration: apple_tv
+    button:
+      name: Button
+      default: select
+      selector:
+        select:
+          options: ["select", "menu", "home", "up", "down", "left", "right", "play_pause"]
+    hold_ms:
+      name: Hold (ms)
+      default: 700
+      selector:
+        number:
+          min: 50
+          max: 5000
+          step: 50
+          unit_of_measurement: ms
 swipe:
   name: Swipe
   description: Swipe gesture between two touchpad points.
