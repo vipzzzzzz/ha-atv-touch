@@ -15,6 +15,21 @@ click:
       selector:
         select:
           options: ["single", "double"]
+    x:
+      name: X (0-1000)
+      description: Where on the clickpad the click lands (default centre; pyatv's own click uses the corner, which grid UIs read as a directional press)
+      default: 500
+      selector:
+        number:
+          min: 0
+          max: 1000
+    y:
+      name: Y (0-1000)
+      default: 500
+      selector:
+        number:
+          min: 0
+          max: 1000
 hold:
   name: Clickpad hold
   description: Press the clickpad, wait, release — with YOUR timing (tvOS context menu needs ~500 ms; pyatv's built-in 1 s hold trips key-repeat).

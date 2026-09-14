@@ -32,7 +32,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv, entity_registry as er
 
-from pyatv.const import InputAction, Protocol, TouchAction
+from pyatv.const import Protocol, TouchAction
 from pyatv.protocols.companion.api import HidCommand
 
 DOMAIN = "atv_touch"
@@ -47,6 +47,8 @@ CLICK_SCHEMA = vol.Schema(
     {
         vol.Optional(ATTR_ENTITY_ID): cv.entity_id,
         vol.Optional("action", default="single"): vol.In(["single", "double"]),
+        vol.Optional("x", default=CENTER): vol.All(vol.Coerce(int), vol.Range(min=0, max=1000)),
+        vol.Optional("y", default=CENTER): vol.All(vol.Coerce(int), vol.Range(min=0, max=1000)),
     }
 )
 HOLD_SCHEMA = vol.Schema(
@@ -116,14 +118,29 @@ async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
     """Register the touch services."""
 
     async def _click(call: ServiceCall) -> None:
+        # pyatv's own `touch.click()` places the clickpad click at
+        # (TOUCHPAD_WIDTH, TOUCHPAD_HEIGHT) = the bottom-RIGHT CORNER of the
+        # pad. tvOS reads a click at the pad's edge like a Siri Remote edge
+        # press (a directional click), so in grid UIs (YouTube, Plex) the
+        # "select" sometimes just moved focus and needed several presses
+        # (observed 2026-09-14: three OKs to start a YouTube video). Same
+        # sequence as pyatv — HID Select button down/up + a touch Click — but
+        # the touch lands at the CENTRE of the pad (or the caller's x/y).
         atv = _resolve_atv(hass, call.data.get(ATTR_ENTITY_ID))
-        action = (
-            InputAction.DoubleTap
-            if call.data["action"] == "double"
-            else InputAction.SingleTap
-        )
-        _LOGGER.debug("touch click %s", action)
-        await atv.touch.click(action)
+        rc = atv.remote_control.get(Protocol.Companion)
+        api = getattr(rc, "api", None)
+        if api is None:
+            raise HomeAssistantError(
+                "Apple TV is not connected over the Companion protocol"
+            )
+        x, y = call.data["x"], call.data["y"]
+        count = 2 if call.data["action"] == "double" else 1
+        _LOGGER.debug("touch click x%d at %d,%d", count, x, y)
+        for _ in range(count):
+            await api._send_command("_hidC", {"_hBtS": 1, "_hidC": HidCommand.Select.value})
+            await asyncio.sleep(0.02)
+            await api._send_command("_hidC", {"_hBtS": 2, "_hidC": HidCommand.Select.value})
+            await api.hid_event(x, y, TouchAction.Click)
 
     async def _hold(call: ServiceCall) -> None:
         atv = _resolve_atv(hass, call.data.get(ATTR_ENTITY_ID))

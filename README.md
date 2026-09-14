@@ -14,7 +14,7 @@ previous track, click = play/pause).
 
 | Service | What it does |
 |---|---|
-| `atv_touch.click` | Clickpad click (`action: single` or `double`) |
+| `atv_touch.click` | Clickpad click (`action: single` or `double`) at `x`/`y` (0–1000, default centre). pyatv's own click lands in the pad's corner, which tvOS grids treat as an edge/directional press — that is why a "select" occasionally only moved focus |
 | `atv_touch.hold` | Press → wait `hold_ms` (default 600) → release, at `x`/`y` (0–1000, default centre) |
 | `atv_touch.swipe` | Swipe from `start_x/y` to `end_x/y` over `duration_ms` |
 | `atv_touch.button_hold` | Hold a HID **button** (`select`, `menu`, `home`, d-pad, `play_pause`) for exactly `hold_ms` (default 700) — the long-press tvOS apps use for item context menus, with a hold short enough to avoid key-repeat |
